@@ -30,4 +30,8 @@ Flash: [===       ]  28.9% (used 8888 bytes from 30720 bytes)
 
 ## [Руководство пользователя - в виде .Docx документа (для печати)](./USER_MANUAL.docx)
 
-## [А как прошить, а как собрать](https://alexgyver.ru/arduino-first/)
+## А как прошить, а как собрать
+
+- [Уроки Arduino](https://alexgyver.ru/arduino-first/)
+- [Оф гайд Platformio CLI](https://docs.platformio.org/en/latest/core/quickstart.html)
+- [Оф гайд Platformio IDE (VSCode)](https://docs.platformio.org/en/latest/integration/ide/vscode.html)
