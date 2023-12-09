@@ -13,18 +13,11 @@
 Занятые ресурсы МК по мнению Platformio:
 
 ```
-RAM:   [=         ]  10.6% (used 218 bytes from 2048 bytes)
-Flash: [===       ]  28.7% (used 8814 bytes from 30720 bytes)
+RAM:   [=         ]  10.4% (used 213 bytes from 2048 bytes)
+Flash: [===       ]  28.9% (used 8888 bytes from 30720 bytes)
 ```
 
-## Зависимости (устанавливаются через Platformio)
-
-- EncButton
-- GyverNTC
-- GyverSegment
-  - GyverIO
-- PinChangeInterrupt
-- TimerMs
+## Зависимости - в [platformio.ini](./platformio.ini)
 
 ## Электронные компоненты
 

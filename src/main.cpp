@@ -4,7 +4,7 @@
 #include "config.h"
 
 // Библиотеки
-#include <EEPROM.h>
+#include <EEManager.h>
 #include <EncButton.h>
 #include <GyverSegment.h>
 #include <GyverNTC.h>
@@ -12,22 +12,28 @@
 #include <PinChangeInterrupt.h>
 
 // Переменные
-int8_t setted_temp = DEFAULT_SETTED_TEMP;
+
 int8_t readed_temp = DEFAULT_READED_TEMP;
-int8_t hysteresis = DEFAULT_HYSTERESIS;
 bool need_redraw_display = false;
 uint8_t mode = MODE_DEFAULT;
-bool need_save_settings = false;
 uint8_t error_code = NO_ERROR;
 uint8_t message_code;
 
+struct Settings
+{
+  int8_t setted_temp = DEFAULT_SETTED_TEMP;
+  int8_t hysteresis = DEFAULT_HYSTERESIS;
+};
+
+Settings settings;
+
 // Инициализация объектов
+EEManager memory(settings, SETTINGS_SAVE_TIME);
 EncButton enc(PIN_ENC_A, PIN_ENC_B, PIN_ENC_BUTT);
 Disp1637Colon display(PIN_TM1637_DIO, PIN_TM1637_CLK);
 GyverNTC ntc(PIN_NTC, NTC_RESISTOR, NTC_BETA_COEF, NTC_BASE_TEMP, NTC_BASE_RESISTANCE, NTC_RESOLUTION);
 TimerMs temp_read_timer(TEMP_READ_TIME, 1, 0);
 TimerMs relay_update_timer(RELAY_UPDATE_TIME, 1, 0);
-TimerMs save_settings_timer(SETTINGS_SAVE_TIME, 0, 1);
 TimerMs message_close_timer(MESSAGE_TIME, 0, 1);
 
 void show_error()
@@ -57,42 +63,6 @@ void close_message()
   DEBUGLN("close_message: closed");
 }
 
-void save_settings()
-{
-  DEBUG("save_settings: ");
-  DEBUG("setted_temp is ");
-  DEBUG(setted_temp);
-  DEBUGLN("");
-
-  DEBUG("save_settings: ");
-  DEBUG("hysteresis is ");
-  DEBUG(hysteresis);
-  DEBUGLN("");
-
-  EEPROM.put(EEPROM_SETTED_TEMP_ADDR, setted_temp);
-  EEPROM.put(EEPROM_HYSTERESIS_ADDR, hysteresis);
-
-  message_code = MESSAGE_SAVED;
-  show_message();
-
-  need_save_settings = false;
-}
-
-void load_settings()
-{
-  // Если запустили первый раз
-  if (EEPROM.read(EEPROM_INIT_MARKER_ADDR) != EEPROM_INIT_MARKER_VALUE)
-  {
-    EEPROM.write(EEPROM_INIT_MARKER_ADDR, EEPROM_INIT_MARKER_VALUE); // Пометили что запустили
-
-    EEPROM.put(EEPROM_SETTED_TEMP_ADDR, setted_temp);
-    EEPROM.put(EEPROM_HYSTERESIS_ADDR, hysteresis);
-  }
-
-  EEPROM.get(EEPROM_SETTED_TEMP_ADDR, setted_temp);
-  EEPROM.get(EEPROM_HYSTERESIS_ADDR, hysteresis);
-}
-
 void read_and_show_temp()
 {
   int8_t previous_readed_temp = readed_temp;
@@ -109,9 +79,9 @@ void read_and_show_temp()
 
 void update_relay()
 {
-  if (readed_temp < setted_temp - hysteresis)
+  if (readed_temp < settings.setted_temp - settings.hysteresis)
     digitalWrite(PIN_RELAY, HIGH);
-  else if (readed_temp > setted_temp + hysteresis)
+  else if (readed_temp > settings.setted_temp + settings.hysteresis)
     digitalWrite(PIN_RELAY, LOW);
 }
 
@@ -147,11 +117,11 @@ void redraw_display()
   display.clear();
 
   if (mode == MODE_SETTED_TEMP)
-    print_mode("S", setted_temp);
+    print_mode("S", settings.setted_temp);
   else if (mode == MODE_READED_TEMP)
     print_mode("C", readed_temp);
   else if (mode == MODE_HYSTERESIS)
-    print_mode("H", hysteresis);
+    print_mode("H", settings.hysteresis);
   else if (mode == MODE_ERROR)
     print_mode("E", error_code);
   else if (mode == MODE_MESSAGE)
@@ -170,17 +140,15 @@ void enc_handle()
     change_mode();
   if (enc.turn())
   {
-    int8_t previous_setted_temp = setted_temp;
-    int8_t previous_hysteresis = hysteresis;
     if (mode == MODE_SETTED_TEMP)
     {
-      setted_temp += TEMP_SET_STEP * ENCODER_CHANGE_DIR * enc.dir();
-      setted_temp = constrain(setted_temp, MIN_SETTED_TEMP, MAX_SETTED_TEMP);
+      settings.setted_temp += TEMP_SET_STEP * ENCODER_CHANGE_DIR * enc.dir();
+      settings.setted_temp = constrain(settings.setted_temp, MIN_SETTED_TEMP, MAX_SETTED_TEMP);
     }
     else if (mode == MODE_HYSTERESIS)
     {
-      hysteresis += HYSTERESIS_SET_STEP * ENCODER_CHANGE_DIR * enc.dir();
-      hysteresis = constrain(hysteresis, MIN_HYSTERESIS, MAX_HYSTERESIS);
+      settings.hysteresis += HYSTERESIS_SET_STEP * ENCODER_CHANGE_DIR * enc.dir();
+      settings.hysteresis = constrain(settings.hysteresis, MIN_HYSTERESIS, MAX_HYSTERESIS);
     }
 
     DEBUG("enc_handle: ");
@@ -190,12 +158,8 @@ void enc_handle()
     DEBUG(hysteresis);
     DEBUGLN("");
 
-    if (previous_setted_temp != setted_temp || previous_hysteresis != hysteresis)
-    {
-      need_save_settings = true;
-      need_redraw_display = true;
-      save_settings_timer.start();
-    }
+    memory.update();
+    need_redraw_display = true;
   }
 }
 
@@ -214,16 +178,20 @@ void setup()
   attachPCINT(digitalPinToPCINT(PIN_ENC_B), enc_isr, CHANGE);
   attachPCINT(digitalPinToPCINT(PIN_ENC_BUTT), enc_isr, CHANGE);
 
-  load_settings();
+  memory.begin(EEPROM_SETTINGS_ADDR, EEPROM_INIT_MARKER_VALUE);
 
   need_redraw_display = true;
 }
 
 void loop()
 {
-  enc.tick();
+  if (memory.tick())
+  {
+    message_code = MESSAGE_SAVED;
+    show_message();
+  }
 
-  enc_handle();
+  enc.tick();
 
   if (temp_read_timer.tick())
     read_and_show_temp();
@@ -231,14 +199,13 @@ void loop()
   if (relay_update_timer.tick())
     update_relay();
 
-  if (save_settings_timer.tick() && need_save_settings)
-    save_settings();
+  if (message_close_timer.tick())
+    close_message();
 
   if (error_code && mode != MODE_ERROR)
     show_error();
 
-  if (message_close_timer.tick())
-    close_message();
+  enc_handle();
 
   if (need_redraw_display)
     redraw_display();

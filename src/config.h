@@ -37,11 +37,8 @@
 #define TM1637_DIGITS_NUM 4         // Количество разрядов на дисплее
 
 // Настройки EEPROM
-#define EEPROM_INIT_MARKER_ADDR 1023 // Адрес в EEPROM по которому устройство будет понимать что уже включалось и в нем что-то сохранено
-#define EEPROM_INIT_MARKER_VALUE 10  // Значение флага выше (взято от балды)
-// Настройки EEPROM адресов с настройками
-#define EEPROM_SETTED_TEMP_ADDR 0 // Адрес в EEPROM с заданной температурой
-#define EEPROM_HYSTERESIS_ADDR 1  // Адрес в EEPROM с заданным гистерезисом
+#define EEPROM_INIT_MARKER_VALUE 10 // Флаг по которому устройство будет понимать что уже включалось и в нем что-то сохранено (взято от балды)
+#define EEPROM_SETTINGS_ADDR 0      // Начальный адрес в EEPROM с настройками
 
 // Режимы дисплея
 #define MODE_SETTED_TEMP 0
