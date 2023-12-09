@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 // Настройки (обязательно зайди)
 #include "config.h"
 
@@ -74,6 +76,21 @@ void save_settings()
   show_message();
 
   need_save_settings = false;
+}
+
+void load_settings()
+{
+  // Если запустили первый раз
+  if (EEPROM.read(EEPROM_INIT_MARKER_ADDR) != EEPROM_INIT_MARKER_VALUE)
+  {
+    EEPROM.write(EEPROM_INIT_MARKER_ADDR, EEPROM_INIT_MARKER_VALUE); // Пометили что запустили
+
+    EEPROM.put(EEPROM_SETTED_TEMP_ADDR, setted_temp);
+    EEPROM.put(EEPROM_HYSTERESIS_ADDR, hysteresis);
+  }
+
+  EEPROM.get(EEPROM_SETTED_TEMP_ADDR, setted_temp);
+  EEPROM.get(EEPROM_HYSTERESIS_ADDR, hysteresis);
 }
 
 void read_and_show_temp()
@@ -197,17 +214,7 @@ void setup()
   attachPCINT(digitalPinToPCINT(PIN_ENC_B), enc_isr, CHANGE);
   attachPCINT(digitalPinToPCINT(PIN_ENC_BUTT), enc_isr, CHANGE);
 
-  // Если запустили первый раз
-  if (EEPROM.read(EEPROM_INIT_MARKER_ADDR) != EEPROM_INIT_MARKER_VALUE)
-  {
-    EEPROM.write(EEPROM_INIT_MARKER_ADDR, EEPROM_INIT_MARKER_VALUE); // Пометили что запустили
-
-    EEPROM.put(EEPROM_SETTED_TEMP_ADDR, setted_temp);
-    EEPROM.put(EEPROM_HYSTERESIS_ADDR, hysteresis);
-  }
-
-  EEPROM.get(EEPROM_SETTED_TEMP_ADDR, setted_temp);
-  EEPROM.get(EEPROM_HYSTERESIS_ADDR, hysteresis);
+  load_settings();
 
   need_redraw_display = true;
 }
