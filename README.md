@@ -17,7 +17,7 @@ RAM:   [=         ]  10.6% (used 218 bytes from 2048 bytes)
 Flash: [===       ]  28.7% (used 8814 bytes from 30720 bytes)
 ```
 
-## Зависимости (в папке lib)
+## Зависимости (устанавливаются через Platformio)
 
 - EncButton
 - GyverNTC
