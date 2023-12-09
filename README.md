@@ -10,13 +10,21 @@
 
 Настройки сохраняются в EEPROM. В Wokwi нет внешнего EEPROM, поэтому используется встроенный в микроконтроллер - но лучше заменить на внешний.
 
-## Зависимости (в папке libs)
+Занятые ресурсы МК по мнению Platformio:
 
-- [EncButton](https://github.com/GyverLibs/EncButton)
-- [GyverNTC](https://github.com/GyverLibs/GyverNTC)
-- [GyverSegment](https://github.com/GyverLibs/GyverSegment)
-- [PinChangeInterrupt](https://github.com/NicoHood/PinChangeInterrupt)
-- [TimerMs](https://github.com/GyverLibs/TimerMs)
+```
+RAM:   [=         ]  10.6% (used 218 bytes from 2048 bytes)
+Flash: [===       ]  28.7% (used 8814 bytes from 30720 bytes)
+```
+
+## Зависимости (в папке lib)
+
+- EncButton
+- GyverNTC
+- GyverSegment
+  - GyverIO
+- PinChangeInterrupt
+- TimerMs
 
 ## Электронные компоненты
 
