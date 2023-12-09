@@ -15,7 +15,6 @@ int8_t readed_temp = DEFAULT_READED_TEMP;
 int8_t hysteresis = DEFAULT_HYSTERESIS;
 bool need_redraw_display = false;
 uint8_t mode = MODE_DEFAULT;
-uint32_t last_encoder_event;
 bool need_save_settings = false;
 uint8_t error_code = NO_ERROR;
 uint8_t message_code;
