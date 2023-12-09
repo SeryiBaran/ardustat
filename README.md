@@ -2,7 +2,7 @@
 
 Схема в Fritzing:
 
-![Fritzing](./fritzing.png)
+![Fritzing](./readme_assets/fritzing.png)
 
 Термостат на Arduino Nano + NTC с 4-разрядным 7-сегментным дисплеем.
 
