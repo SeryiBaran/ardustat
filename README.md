@@ -18,6 +18,15 @@
 - [PinChangeInterrupt](https://github.com/NicoHood/PinChangeInterrupt)
 - [TimerMs](https://github.com/GyverLibs/TimerMs)
 
+## Электронные компоненты
+
+- Arduino Nano
+- Реле на 5V
+- Энкодер с кнопкой
+- Термистор
+- Резистор, лучше равный сопротивлению термистора
+- Дисплей TM1637
+
 ## [Руководство пользователя - в виде .Docx документа (для печати)](./USER_MANUAL.docx)
 
 ## [А как прошить, а как собрать](https://alexgyver.ru/arduino-first/)
