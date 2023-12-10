@@ -46,18 +46,10 @@ void remove_message()
   DEBUGLN(F("remove_message: closed"));
 }
 
-// Читаем температуру и планируем отобразить при следующей отрисовке дисплея
-void read_and_show_temp()
+// Читаем температуру
+void read_temp()
 {
-  int8_t previous_readed_temp = readed_temp;
   readed_temp = ntc.getTempAverage();
-
-  DEBUG(F("read_and_show_temp: "));
-  DEBUG(F("readed_temp is "));
-  DEBUGLN(readed_temp);
-
-  if (previous_readed_temp != readed_temp && mode == MODE_READED_TEMP)
-    need_redraw_display = true;
 }
 
 // Обновляем состояние реле
@@ -124,8 +116,11 @@ void redraw_display()
   message_code = MESSAGE_NO; // Вывели сообщение - очищаем код сообщения чтобы заново не показалось
 }
 
+// Работа с энкодером
 void enc_handle()
 {
+  enc.tick();
+
   if (enc.click())
     change_mode();
 
@@ -177,22 +172,21 @@ void loop()
     add_message();
   }
 
-  enc.tick();
-
   if (temp_read_timer.tick())
-    read_and_show_temp();
+  {
+    read_temp();
+    need_redraw_display = true;
+  }
+
+  enc_handle();
 
   if (relay_update_timer.tick())
     update_relay();
 
   if (message_code)
     add_message();
-
   if (message_close_timer.tick())
     remove_message();
-
-  enc_handle();
-
   if (need_redraw_display)
     redraw_display();
 }
