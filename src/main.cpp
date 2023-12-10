@@ -94,7 +94,6 @@ void redraw_display()
     print_mode(AS_MODE_SYMBOL_HSTR, settings.hstr);
   else if (mode == AS_MODE_MESSAGE)
   {
-    // Если сообщение имеет ID ошибки, выводим символ ошибки. Иначе символ сообщения
     print_mode(message_is_error
                    ? AS_MODE_SYMBOL_ERROR
                    : AS_MODE_SYMBOL_MESSAGE,
