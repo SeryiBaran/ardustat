@@ -1,24 +1,12 @@
-#include <Arduino.h>
-
-// Настройки (обязательно зайди)
-#include "config.h"
-
-// Библиотеки
-#include <EEManager.h>
-#include <EncButton.h>
-#include <GyverSegment.h>
-#include <GyverNTC.h>
-#include <TimerMs.h>
-#include <PinChangeInterrupt.h>
+#include "main.h"
 
 // Переменные
-
 int8_t readed_temp = DEFAULT_READED_TEMP;
 bool need_redraw_display = false;
 uint8_t mode = MODE_DEFAULT;
-uint8_t error_code = NO_ERROR;
-uint8_t message_code;
+uint8_t message_code = MESSAGE_NO;
 
+// Изменяемые настройки
 struct Settings
 {
   int8_t setted_temp = DEFAULT_SETTED_TEMP;
@@ -36,14 +24,8 @@ TimerMs temp_read_timer(TEMP_READ_TIME, 1, 0);
 TimerMs relay_update_timer(RELAY_UPDATE_TIME, 1, 0);
 TimerMs message_close_timer(MESSAGE_TIME, 0, 1);
 
-void show_error()
-{
-  mode = MODE_ERROR;
-
-  need_redraw_display = true;
-}
-
-void show_message()
+// Планируем отобразить сообщение при следующей отрисовке дисплея
+void add_message()
 {
   mode = MODE_MESSAGE;
 
@@ -51,32 +33,34 @@ void show_message()
 
   need_redraw_display = true;
 
-  DEBUGLN("show_message: showed");
+  DEBUGLN(F("add_message: showed"));
 }
 
-void close_message()
+// Планируем убрать сообщение при следующей отрисовке дисплея
+void remove_message()
 {
   mode = MODE_DEFAULT;
 
   need_redraw_display = true;
 
-  DEBUGLN("close_message: closed");
+  DEBUGLN(F("remove_message: closed"));
 }
 
+// Читаем температуру и планируем отобразить при следующей отрисовке дисплея
 void read_and_show_temp()
 {
   int8_t previous_readed_temp = readed_temp;
   readed_temp = ntc.getTempAverage();
 
-  DEBUG("read_and_show_temp: ");
-  DEBUG("readed_temp is ");
-  DEBUG(readed_temp);
-  DEBUGLN("");
+  DEBUG(F("read_and_show_temp: "));
+  DEBUG(F("readed_temp is "));
+  DEBUGLN(readed_temp);
 
   if (previous_readed_temp != readed_temp && mode == MODE_READED_TEMP)
     need_redraw_display = true;
 }
 
+// Обновляем состояние реле
 void update_relay()
 {
   if (readed_temp < settings.setted_temp - settings.hysteresis)
@@ -85,6 +69,7 @@ void update_relay()
     digitalWrite(PIN_RELAY, LOW);
 }
 
+// Меняем режим
 void change_mode()
 {
   mode++;
@@ -94,6 +79,7 @@ void change_mode()
   need_redraw_display = true;
 }
 
+// Печатаем число в конце экрана (но не обновляем дисплей!)
 void put_num_at_end(int32_t num)
 {
   int num_len = sseg::intLen(num);
@@ -101,48 +87,53 @@ void put_num_at_end(int32_t num)
   display.print(num);
 }
 
+// Печатаем режим (его символ и число) (но не обновляем дисплей!)
 void print_mode(String mode_name, int32_t num)
 {
   display.print(mode_name);
   put_num_at_end(num);
 }
 
+// Обновление дисплея
 void redraw_display()
 {
-  DEBUG("redraw_display: ");
-  DEBUG("redraw");
-  DEBUGLN("");
+  DEBUGLN(F("redraw_display: redraw"));
 
   display.setCursor(0);
   display.clear();
 
   if (mode == MODE_SETTED_TEMP)
-    print_mode("S", settings.setted_temp);
+    print_mode(MODE_SYMBOL_SETTED_TEMP, settings.setted_temp);
   else if (mode == MODE_READED_TEMP)
-    print_mode("C", readed_temp);
+    print_mode(MODE_SYMBOL_READED_TEMP, readed_temp);
   else if (mode == MODE_HYSTERESIS)
-    print_mode("H", settings.hysteresis);
-  else if (mode == MODE_ERROR)
-    print_mode("E", error_code);
+    print_mode(MODE_SYMBOL_HYSTERESIS, settings.hysteresis);
   else if (mode == MODE_MESSAGE)
-    print_mode("I", message_code);
+    print_mode(message_code >= MESSAGE_ERROR_FIRST
+                   ? MODE_SYMBOL_ERROR
+                   : MODE_SYMBOL_MESSAGE,
+               message_code); // Если сообщение имеет ID ошибки, выводим символ ошибки. Иначе символ сообщения
   else
-    error_code = DISPLAY_ERROR;
+    message_code = MESSAGE_ERROR_DISPLAY; // Если ID режима не подходит, ставим ошибку. При следующем рендере она покажется
 
   display.update();
 
   need_redraw_display = false;
+
+  // TODO: перенести в IF
+  message_code = MESSAGE_NO; // Вывели сообщение - очищаем код сообщения чтобы заново не показалось
 }
 
 void enc_handle()
 {
   if (enc.click())
     change_mode();
+
   if (enc.turn())
   {
     if (mode == MODE_SETTED_TEMP)
     {
-      settings.setted_temp += TEMP_SET_STEP * ENCODER_CHANGE_DIR * enc.dir();
+      settings.setted_temp += TEMP_SET_STEP * ENCODER_CHANGE_DIR * enc.dir(); // Немножко несложной магии. Читайте https://github.com/GyverLibs/EncButton
       settings.setted_temp = constrain(settings.setted_temp, MIN_SETTED_TEMP, MAX_SETTED_TEMP);
     }
     else if (mode == MODE_HYSTERESIS)
@@ -151,18 +142,12 @@ void enc_handle()
       settings.hysteresis = constrain(settings.hysteresis, MIN_HYSTERESIS, MAX_HYSTERESIS);
     }
 
-    DEBUG("enc_handle: ");
-    DEBUG("setted_temp is ");
-    DEBUG(setted_temp);
-    DEBUG(", hysteresis is ");
-    DEBUG(hysteresis);
-    DEBUGLN("");
-
     memory.update();
     need_redraw_display = true;
   }
 }
 
+// Функция обработки программного прерывания для энкодера. Читайте https://github.com/GyverLibs/EncButton
 void enc_isr()
 {
   enc.tickISR();
@@ -185,10 +170,11 @@ void setup()
 
 void loop()
 {
+  // Если настройки были записаны в EEPROM - ставим радостное сообщение
   if (memory.tick())
   {
     message_code = MESSAGE_SAVED;
-    show_message();
+    add_message();
   }
 
   enc.tick();
@@ -199,11 +185,11 @@ void loop()
   if (relay_update_timer.tick())
     update_relay();
 
-  if (message_close_timer.tick())
-    close_message();
+  if (message_code)
+    add_message();
 
-  if (error_code && mode != MODE_ERROR)
-    show_error();
+  if (message_close_timer.tick())
+    remove_message();
 
   enc_handle();
 

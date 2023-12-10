@@ -1,3 +1,5 @@
+#pragma once
+
 // Раскомментируй для отладки по UART
 // #define ENABLE_DEBUG
 
@@ -44,18 +46,26 @@
 #define MODE_SETTED_TEMP 0
 #define MODE_READED_TEMP 1
 #define MODE_HYSTERESIS 2
-#define MODE_ERROR 100
 #define MODE_MESSAGE 101
 #define MODE_SWITCH_MIN 0             // "Индекс" первого режима доступного для переключения
 #define MODE_SWITCH_MAX 2             // "Индекс" последнего
 #define MODE_DEFAULT MODE_SETTED_TEMP // Стандартный режим
 
-// Коды ошибок
-#define NO_ERROR 0
-#define DISPLAY_ERROR 1
+// Символы режимов
+#define MODE_SYMBOL_SETTED_TEMP F("S")
+#define MODE_SYMBOL_READED_TEMP F("C")
+#define MODE_SYMBOL_HYSTERESIS F("H")
+#define MODE_SYMBOL_ERROR F("E")
+#define MODE_SYMBOL_MESSAGE F("I")
 
 // Коды сообщений
+#define MESSAGE_NO 0
 #define MESSAGE_SAVED 1
+#define MESSAGE_ERROR_DISPLAY 101
+#define MESSAGE_FIRST 1
+#define MESSAGE_LAST 99
+#define MESSAGE_ERROR_FIRST 100
+#define MESSAGE_ERROR_LAST 199
 
 // NTC (термистор) (https://kit.alexgyver.ru/tutorials/thermistor/)
 #define NTC_RESISTOR 10000        // Сопротивление резистора подключенного с NTC для создания делителя напряжения
