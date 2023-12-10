@@ -52,9 +52,10 @@ void read_temp()
 // Обновляем состояние реле
 void update_relay()
 {
-  if (sens_temp < settings.temp - settings.hstr)
+  // Гистерезис - https://alexgyver.ru/lessons/relay-control/
+  if (sens_temp < (settings.temp - settings.hstr))
     digitalWrite(AS_PIN_RELAY, HIGH);
-  else if (sens_temp > settings.temp + settings.hstr)
+  else if (sens_temp > (settings.temp + settings.hstr))
     digitalWrite(AS_PIN_RELAY, LOW);
 }
 
@@ -161,10 +162,7 @@ void loop()
 {
   // Если настройки были записаны в EEPROM - ставим радостное сообщение
   if (memory.tick())
-  {
     message_code = AS_MESSAGE_SAVED;
-    add_message();
-  }
 
   if (temp_read_timer.tick())
   {
