@@ -39,3 +39,5 @@ Flash: [==        ]  24.7% (used 7586 bytes from 30720 bytes)
 - [Уроки Arduino](https://alexgyver.ru/arduino-first/)
 - [Оф гайд Platformio CLI](https://docs.platformio.org/en/latest/core/quickstart.html)
 - [Оф гайд Platformio IDE (VSCode)](https://docs.platformio.org/en/latest/integration/ide/vscode.html)
+
+## История версий - в [CHANGELOG.md](./CHANGELOG.md)
