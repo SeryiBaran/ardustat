@@ -1,33 +1,33 @@
 #include "main.h"
 
 // Переменные
-int8_t readed_temp = DEFAULT_READED_TEMP;
+int8_t readed_temp = AS_DEFAULT_READED_TEMP;
 bool need_redraw_display = false;
-uint8_t mode = MODE_DEFAULT;
-uint8_t message_code = MESSAGE_NO;
+uint8_t mode = AS_MODE_DEFAULT;
+uint8_t message_code = AS_MESSAGE_NO;
 
 // Изменяемые настройки
 struct Settings
 {
-  int8_t setted_temp = DEFAULT_SETTED_TEMP;
-  int8_t hysteresis = DEFAULT_HYSTERESIS;
+  int8_t setted_temp = AS_DEFAULT_SETTED_TEMP;
+  int8_t hysteresis = AS_DEFAULT_HYSTERESIS;
 };
 
 Settings settings;
 
 // Инициализация объектов
-EEManager memory(settings, SETTINGS_SAVE_TIME);
-EncButton enc(PIN_ENC_A, PIN_ENC_B, PIN_ENC_BUTT);
-Disp1637Colon display(PIN_TM1637_DIO, PIN_TM1637_CLK);
-GyverNTC ntc(PIN_NTC, NTC_RESISTOR, NTC_BETA_COEF, NTC_BASE_TEMP, NTC_BASE_RESISTANCE, NTC_RESOLUTION);
-TimerMs temp_read_timer(TEMP_READ_TIME, 1, 0);
-TimerMs relay_update_timer(RELAY_UPDATE_TIME, 1, 0);
-TimerMs message_close_timer(MESSAGE_TIME, 0, 1);
+EEManager memory(settings, AS_SETTINGS_SAVE_TIME);
+EncButton enc(AS_PIN_ENC_A, AS_PIN_ENC_B, AS_PIN_ENC_BUTT);
+Disp1637Colon display(AS_PIN_TM1637_DIO, AS_PIN_TM1637_CLK);
+GyverNTC ntc(AS_PIN_NTC, AS_NTC_RESISTOR, AS_NTC_BETA_COEF, AS_NTC_BASE_TEMP, AS_NTC_BASE_RESISTANCE, AS_NTC_RESOLUTION);
+TimerMs temp_read_timer(AS_TEMP_READ_TIME, 1, 0);
+TimerMs relay_update_timer(AS_RELAY_UPDATE_TIME, 1, 0);
+TimerMs message_close_timer(AS_MESSAGE_TIME, 0, 1);
 
 // Планируем отобразить сообщение при следующей отрисовке дисплея
 void add_message()
 {
-  mode = MODE_MESSAGE;
+  mode = AS_MODE_MESSAGE;
 
   message_close_timer.start();
 
@@ -39,7 +39,7 @@ void add_message()
 // Планируем убрать сообщение при следующей отрисовке дисплея
 void remove_message()
 {
-  mode = MODE_DEFAULT;
+  mode = AS_MODE_DEFAULT;
 
   need_redraw_display = true;
 
@@ -56,17 +56,17 @@ void read_temp()
 void update_relay()
 {
   if (readed_temp < settings.setted_temp - settings.hysteresis)
-    digitalWrite(PIN_RELAY, HIGH);
+    digitalWrite(AS_PIN_RELAY, HIGH);
   else if (readed_temp > settings.setted_temp + settings.hysteresis)
-    digitalWrite(PIN_RELAY, LOW);
+    digitalWrite(AS_PIN_RELAY, LOW);
 }
 
 // Меняем режим
 void change_mode()
 {
   mode++;
-  if (mode > MODE_SWITCH_MAX)
-    mode = MODE_SWITCH_MIN;
+  if (mode > AS_MODE_SWITCH_MAX)
+    mode = AS_MODE_SWITCH_MIN;
 
   need_redraw_display = true;
 }
@@ -75,7 +75,7 @@ void change_mode()
 void put_num_at_end(int32_t num)
 {
   int num_len = sseg::intLen(num);
-  display.setCursor(TM1637_DIGITS_NUM - num_len);
+  display.setCursor(AS_TM1637_DIGITS_NUM - num_len);
   display.print(num);
 }
 
@@ -94,26 +94,26 @@ void redraw_display()
   display.setCursor(0);
   display.clear();
 
-  if (mode == MODE_SETTED_TEMP)
-    print_mode(MODE_SYMBOL_SETTED_TEMP, settings.setted_temp);
-  else if (mode == MODE_READED_TEMP)
-    print_mode(MODE_SYMBOL_READED_TEMP, readed_temp);
-  else if (mode == MODE_HYSTERESIS)
-    print_mode(MODE_SYMBOL_HYSTERESIS, settings.hysteresis);
-  else if (mode == MODE_MESSAGE)
-    print_mode(message_code >= MESSAGE_ERROR_FIRST
-                   ? MODE_SYMBOL_ERROR
-                   : MODE_SYMBOL_MESSAGE,
-               message_code); // Если сообщение имеет ID ошибки, выводим символ ошибки. Иначе символ сообщения
+  if (mode == AS_MODE_SETTED_TEMP)
+    print_mode(AS_MODE_SYMBOL_SETTED_TEMP, settings.setted_temp);
+  else if (mode == AS_MODE_READED_TEMP)
+    print_mode(AS_MODE_SYMBOL_READED_TEMP, readed_temp);
+  else if (mode == AS_MODE_HYSTERESIS)
+    print_mode(AS_MODE_SYMBOL_HYSTERESIS, settings.hysteresis);
+  else if (mode == AS_MODE_MESSAGE)
+  {
+    print_mode(message_code >= AS_MESSAGE_ERROR_FIRST
+                   ? AS_MODE_SYMBOL_ERROR
+                   : AS_MODE_SYMBOL_MESSAGE,
+               message_code);     // Если сообщение имеет ID ошибки, выводим символ ошибки. Иначе символ сообщения
+    message_code = AS_MESSAGE_NO; // Вывели сообщение - очищаем код сообщения чтобы заново не показалось
+  }
   else
-    message_code = MESSAGE_ERROR_DISPLAY; // Если ID режима не подходит, ставим ошибку. При следующем рендере она покажется
+    message_code = AS_MESSAGE_ERROR_DISPLAY; // Если ID режима не подходит, ставим ошибку. При следующем рендере она покажется
 
   display.update();
 
   need_redraw_display = false;
-
-  // TODO: перенести в IF
-  message_code = MESSAGE_NO; // Вывели сообщение - очищаем код сообщения чтобы заново не показалось
 }
 
 // Работа с энкодером
@@ -126,15 +126,15 @@ void enc_handle()
 
   if (enc.turn())
   {
-    if (mode == MODE_SETTED_TEMP)
+    if (mode == AS_MODE_SETTED_TEMP)
     {
-      settings.setted_temp += TEMP_SET_STEP * ENCODER_CHANGE_DIR * enc.dir(); // Немножко несложной магии. Читайте https://github.com/GyverLibs/EncButton
-      settings.setted_temp = constrain(settings.setted_temp, MIN_SETTED_TEMP, MAX_SETTED_TEMP);
+      settings.setted_temp += AS_TEMP_SET_STEP * AS_ENCODER_CHANGE_DIR * enc.dir(); // Немножко несложной магии. Читайте https://github.com/GyverLibs/EncButton
+      settings.setted_temp = constrain(settings.setted_temp, AS_MIN_SETTED_TEMP, AS_MAX_SETTED_TEMP);
     }
-    else if (mode == MODE_HYSTERESIS)
+    else if (mode == AS_MODE_HYSTERESIS)
     {
-      settings.hysteresis += HYSTERESIS_SET_STEP * ENCODER_CHANGE_DIR * enc.dir();
-      settings.hysteresis = constrain(settings.hysteresis, MIN_HYSTERESIS, MAX_HYSTERESIS);
+      settings.hysteresis += AS_HYSTERESIS_SET_STEP * AS_ENCODER_CHANGE_DIR * enc.dir();
+      settings.hysteresis = constrain(settings.hysteresis, AS_MIN_HYSTERESIS, AS_MAX_HYSTERESIS);
     }
 
     memory.update();
@@ -154,11 +154,11 @@ void setup()
   Serial.begin(115200);
 #endif
 
-  attachPCINT(digitalPinToPCINT(PIN_ENC_A), enc_isr, CHANGE);
-  attachPCINT(digitalPinToPCINT(PIN_ENC_B), enc_isr, CHANGE);
-  attachPCINT(digitalPinToPCINT(PIN_ENC_BUTT), enc_isr, CHANGE);
+  attachPCINT(digitalPinToPCINT(AS_PIN_ENC_A), enc_isr, CHANGE);
+  attachPCINT(digitalPinToPCINT(AS_PIN_ENC_B), enc_isr, CHANGE);
+  attachPCINT(digitalPinToPCINT(AS_PIN_ENC_BUTT), enc_isr, CHANGE);
 
-  memory.begin(EEPROM_SETTINGS_ADDR, EEPROM_INIT_MARKER_VALUE);
+  memory.begin(AS_EEPROM_SETTINGS_ADDR, AS_EEPROM_INIT_MARKER_VALUE);
 
   need_redraw_display = true;
 }
@@ -168,7 +168,7 @@ void loop()
   // Если настройки были записаны в EEPROM - ставим радостное сообщение
   if (memory.tick())
   {
-    message_code = MESSAGE_SAVED;
+    message_code = AS_MESSAGE_SAVED;
     add_message();
   }
 
