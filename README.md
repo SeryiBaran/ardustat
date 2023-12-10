@@ -13,8 +13,8 @@
 Занятые ресурсы МК по мнению PlatformIO:
 
 ```
-RAM:   [=         ]   9.9% (used 202 bytes from 2048 bytes)
-Flash: [===       ]  29.0% (used 8920 bytes from 30720 bytes)
+RAM:   [=         ]  10.0% (used 205 bytes from 2048 bytes)
+Flash: [==        ]  24.7% (used 7586 bytes from 30720 bytes)
 ```
 
 ## Зависимости - в [platformio.ini](./platformio.ini)

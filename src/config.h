@@ -22,16 +22,13 @@
 #define AS_PIN_TM1637_DIO 12 // Пин DIO дисплея TM1637
 
 // Настройки
-#define AS_MIN_SETTED_TEMP 20          // Минимальная задаваемая температура
-#define AS_MAX_SETTED_TEMP 60          // Максимальная задаваемая температура
-#define AS_DEFAULT_SETTED_TEMP 20      // Заданная температура по умолчанию
-#define AS_DEFAULT_READED_TEMP 99      // Температура с датчика по умолчанию
-#define AS_MIN_HYSTERESIS 1            // Минимальный гистерезис
-#define AS_MAX_HYSTERESIS 10           // Максимальный гистерезис
-#define AS_DEFAULT_HYSTERESIS 2        // Гистерезис по умолчанию
-#define AS_TEMP_SET_STEP 1             // Шаг изменения температуры
-#define AS_HYSTERESIS_SET_STEP 1       // Шаг изменения гистерезиса
-#define AS_ENCODER_CHANGE_DIR -1       // Направление изменения параметра с помощью энкодера. -1 - увеличение по часовой, 1 - увеличение против часовой
+#define AS_MIN_TEMP 20                 // Минимальная задаваемая температура
+#define AS_MAX_TEMP 60                 // Максимальная задаваемая температура
+#define AS_DEFAULT_TEMP 20             // Заданная температура по умолчанию
+#define AS_DEFAULT_SENS_TEMP 99        // Температура с датчика по умолчанию
+#define AS_MIN_HSTR 1                  // Минимальный гистерезис
+#define AS_MAX_HSTR 10                 // Максимальный гистерезис
+#define AS_DEFAULT_HSTR 2              // Гистерезис по умолчанию
 #define AS_TEMP_READ_TIME 500          // Время между замерами температуры
 #define AS_RELAY_UPDATE_TIME 3000      // Минимальное время между изменением состояния реле
 #define AS_MESSAGE_TIME 3000           // Время показа сообщения
@@ -43,20 +40,20 @@
 #define AS_EEPROM_SETTINGS_ADDR 0      // Начальный адрес в EEPROM с настройками
 
 // Режимы дисплея
-#define AS_MODE_SETTED_TEMP 0
-#define AS_MODE_READED_TEMP 1
-#define AS_MODE_HYSTERESIS 2
+#define AS_MODE_TEMP 0
+#define AS_MODE_SENS_TEMP 1
+#define AS_MODE_HSTR 2
 #define AS_MODE_MESSAGE 101
-#define AS_MODE_SWITCH_MIN 0                // "Индекс" первого режима доступного для переключения
-#define AS_MODE_SWITCH_MAX 2                // "Индекс" последнего
-#define AS_MODE_DEFAULT AS_MODE_SETTED_TEMP // Стандартный режим
+#define AS_MODE_SWITCH_MIN 0         // "Индекс" первого режима доступного для переключения
+#define AS_MODE_SWITCH_MAX 2         // "Индекс" последнего
+#define AS_MODE_DEFAULT AS_MODE_TEMP // Стандартный режим
 
 // Символы режимов
-#define AS_MODE_SYMBOL_SETTED_TEMP F("S")
-#define AS_MODE_SYMBOL_READED_TEMP F("C")
-#define AS_MODE_SYMBOL_HYSTERESIS F("H")
-#define AS_MODE_SYMBOL_ERROR F("E")
-#define AS_MODE_SYMBOL_MESSAGE F("I")
+#define AS_MODE_SYMBOL_TEMP "S"
+#define AS_MODE_SYMBOL_SENS_TEMP "C"
+#define AS_MODE_SYMBOL_HSTR "H"
+#define AS_MODE_SYMBOL_ERROR "E"
+#define AS_MODE_SYMBOL_MESSAGE "I"
 
 // Коды сообщений
 #define AS_MESSAGE_NO 0

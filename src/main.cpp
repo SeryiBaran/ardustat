@@ -1,16 +1,17 @@
 #include "main.h"
 
 // Переменные
-int8_t readed_temp = AS_DEFAULT_READED_TEMP;
+int16_t sens_temp = AS_DEFAULT_SENS_TEMP;
 bool need_redraw_display = false;
 uint8_t mode = AS_MODE_DEFAULT;
 uint8_t message_code = AS_MESSAGE_NO;
+bool message_is_error = false;
 
 // Изменяемые настройки
 struct Settings
 {
-  int8_t setted_temp = AS_DEFAULT_SETTED_TEMP;
-  int8_t hysteresis = AS_DEFAULT_HYSTERESIS;
+  int16_t temp = AS_DEFAULT_TEMP;
+  int16_t hstr = AS_DEFAULT_HSTR;
 };
 
 Settings settings;
@@ -32,8 +33,6 @@ void add_message()
   message_close_timer.start();
 
   need_redraw_display = true;
-
-  DEBUGLN(F("add_message: showed"));
 }
 
 // Планируем убрать сообщение при следующей отрисовке дисплея
@@ -42,22 +41,20 @@ void remove_message()
   mode = AS_MODE_DEFAULT;
 
   need_redraw_display = true;
-
-  DEBUGLN(F("remove_message: closed"));
 }
 
 // Читаем температуру
 void read_temp()
 {
-  readed_temp = ntc.getTempAverage();
+  sens_temp = ntc.getTempAverage();
 }
 
 // Обновляем состояние реле
 void update_relay()
 {
-  if (readed_temp < settings.setted_temp - settings.hysteresis)
+  if (sens_temp < settings.temp - settings.hstr)
     digitalWrite(AS_PIN_RELAY, HIGH);
-  else if (readed_temp > settings.setted_temp + settings.hysteresis)
+  else if (sens_temp > settings.temp + settings.hstr)
     digitalWrite(AS_PIN_RELAY, LOW);
 }
 
@@ -71,45 +68,47 @@ void change_mode()
   need_redraw_display = true;
 }
 
-// Печатаем число в конце экрана (но не обновляем дисплей!)
-void put_num_at_end(int32_t num)
+// Печатаем режим (его символ и число) (но не обновляем дисплей!)
+void print_mode(const char *mode_symbol, int16_t num)
 {
-  int num_len = sseg::intLen(num);
+  display.print(mode_symbol);
+
+  // Печатаем число в конце экрана
+  uint8_t num_len = sseg::intLen(num);
   display.setCursor(AS_TM1637_DIGITS_NUM - num_len);
   display.print(num);
-}
-
-// Печатаем режим (его символ и число) (но не обновляем дисплей!)
-void print_mode(String mode_name, int32_t num)
-{
-  display.print(mode_name);
-  put_num_at_end(num);
 }
 
 // Обновление дисплея
 void redraw_display()
 {
-  DEBUGLN(F("redraw_display: redraw"));
-
   display.setCursor(0);
   display.clear();
 
-  if (mode == AS_MODE_SETTED_TEMP)
-    print_mode(AS_MODE_SYMBOL_SETTED_TEMP, settings.setted_temp);
-  else if (mode == AS_MODE_READED_TEMP)
-    print_mode(AS_MODE_SYMBOL_READED_TEMP, readed_temp);
-  else if (mode == AS_MODE_HYSTERESIS)
-    print_mode(AS_MODE_SYMBOL_HYSTERESIS, settings.hysteresis);
+  if (mode == AS_MODE_TEMP)
+    print_mode(AS_MODE_SYMBOL_TEMP, settings.temp);
+  else if (mode == AS_MODE_SENS_TEMP)
+    print_mode(AS_MODE_SYMBOL_SENS_TEMP, sens_temp);
+  else if (mode == AS_MODE_HSTR)
+    print_mode(AS_MODE_SYMBOL_HSTR, settings.hstr);
   else if (mode == AS_MODE_MESSAGE)
   {
-    print_mode(message_code >= AS_MESSAGE_ERROR_FIRST
+    // Если сообщение имеет ID ошибки, выводим символ ошибки. Иначе символ сообщения
+    print_mode(message_is_error
                    ? AS_MODE_SYMBOL_ERROR
                    : AS_MODE_SYMBOL_MESSAGE,
-               message_code);     // Если сообщение имеет ID ошибки, выводим символ ошибки. Иначе символ сообщения
-    message_code = AS_MESSAGE_NO; // Вывели сообщение - очищаем код сообщения чтобы заново не показалось
+               message_code);
+
+    // Вывели - чистим за собой
+    message_code = AS_MESSAGE_NO;
+    message_is_error = false;
   }
   else
-    message_code = AS_MESSAGE_ERROR_DISPLAY; // Если ID режима не подходит, ставим ошибку. При следующем рендере она покажется
+  {
+    // Если ID режима не подходит, ставим ошибку. При следующем рендере она покажется
+    message_code = AS_MESSAGE_ERROR_DISPLAY;
+    message_is_error = true;
+  }
 
   display.update();
 
@@ -126,16 +125,11 @@ void enc_handle()
 
   if (enc.turn())
   {
-    if (mode == AS_MODE_SETTED_TEMP)
-    {
-      settings.setted_temp += AS_TEMP_SET_STEP * AS_ENCODER_CHANGE_DIR * enc.dir(); // Немножко несложной магии. Читайте https://github.com/GyverLibs/EncButton
-      settings.setted_temp = constrain(settings.setted_temp, AS_MIN_SETTED_TEMP, AS_MAX_SETTED_TEMP);
-    }
-    else if (mode == AS_MODE_HYSTERESIS)
-    {
-      settings.hysteresis += AS_HYSTERESIS_SET_STEP * AS_ENCODER_CHANGE_DIR * enc.dir();
-      settings.hysteresis = constrain(settings.hysteresis, AS_MIN_HYSTERESIS, AS_MAX_HYSTERESIS);
-    }
+    // `-1` - шаг изменения, указывается отрицательным числом
+    if (mode == AS_MODE_TEMP)
+      settings.temp = constrain(settings.temp + -1 * enc.dir(), AS_MIN_TEMP, AS_MAX_TEMP);
+    else if (mode == AS_MODE_HSTR)
+      settings.hstr = constrain(settings.hstr + -1 * enc.dir(), AS_MIN_HSTR, AS_MAX_HSTR);
 
     memory.update();
     need_redraw_display = true;
