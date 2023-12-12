@@ -1,9 +1,8 @@
 #pragma once
 
-// Раскомментируй для отладки по UART
+// Раскомментируй для отладки по Serial
 // #define ENABLE_DEBUG
 
-// Позаимствовано у AlexGyver (https://alexgyver.ru)
 #ifdef ENABLE_DEBUG
 #define DEBUG(x) Serial.print(x)
 #define DEBUGLN(x) Serial.println(x)
@@ -22,57 +21,48 @@
 #define AS_PIN_TM1637_CLK 11  // Пин CLK дисплея TM1637
 #define AS_PIN_TM1637_DIO 12  // Пин DIO дисплея TM1637
 
-// ----- Настройки
+// ----- Разные настройки
 
-// Минимальная задаваемая температура
-#define AS_MIN_TEMP 20
-// Максимальная задаваемая температура
-#define AS_MAX_TEMP 60
-// Заданная температура по умолчанию
-#define AS_DEFAULT_TEMP 20
-// Температура с датчика по умолчанию
-#define AS_DEFAULT_SENS_TEMP 99
-// Минимальный гистерезис
-#define AS_MIN_HSTR 1
-// Максимальный гистерезис
-#define AS_MAX_HSTR 10
-// Гистерезис по умолчанию
-#define AS_DEFAULT_HSTR 2
-// Время между замерами температуры
-#define AS_TEMP_READ_TIME 500
-// Минимальное время между изменениями состояния реле
-#define AS_RELAY_UPDATE_TIME 3000
-// Время показа сообщения
-#define AS_MESSAGE_TIME 3000
-// Время бездействия, после которого сохраняются настройки. 1000 * 5 - через 5
-// секунд после последнего изменения
-#define AS_SETTINGS_SAVE_TIME 1000 * 5
-// Количество разрядов на дисплее
-#define AS_TM1637_DIGITS_NUM 4
+#define AS_MIN_TEMP 20           // Минимальная темп.
+#define AS_MAX_TEMP 60           // Максимальная темп.
+#define AS_DEFAULT_TEMP 20       // Темп. по умолчанию
+#define AS_DEFAULT_SENS_TEMP 99  // Дефолт темп. с датчика
+#define AS_MIN_HSTR 1            // Мин. гистерезис
+#define AS_MAX_HSTR 10           // Макс. гистерезис
+#define AS_DEFAULT_HSTR 2        // Дефолт гистерезис
+
+// ----- Таймауты (в миллисекундах)
+
+#define AS_TEMP_READ_TIME 500  // Таймаут замера темп.
+#define AS_RELAY_UPDATE_TIME 3000  // Время между переключениями реле
+#define AS_MESSAGE_TIME 3000  // Время показа сообщения
+#define AS_SETTINGS_SAVE_TIME 5000  // Задержка сохранения настроек
 
 // ----- Настройки EEPROM
 
-// Флаг по которому устройство будет понимать что уже включалось и в нем что-то
-// сохранено (взято от балды)
-#define AS_EEPROM_INIT_MARKER_VALUE 10
-// Начальный адрес в EEPROM с настройками
-#define AS_EEPROM_SETTINGS_ADDR 0
+#define AS_EEPROM_INIT_MARKER_VALUE \
+  10  // Значение флага по которому устройство будет понимать что уже включалось
+      // и в нем что-то сохранено. Взято от балды, но не должно быть
+      // равно стандартному значению в EEPROM `255`
 
-// ----- Режимы дисплея
+#define AS_EEPROM_SETTINGS_ADDR 0  // Адрес с настройками
 
-#define AS_MODE_TEMP 0
-#define AS_MODE_SENS_TEMP 1
-#define AS_MODE_HSTR 2
-#define AS_MODE_MESSAGE 101
-// "Индекс" первого режима доступного для переключения
-#define AS_MODE_SWITCH_MIN 0
-// "Индекс" последнего
-#define AS_MODE_SWITCH_MAX 2
-// Стандартный режим
-#define AS_MODE_DEFAULT AS_MODE_TEMP
+// ----- Настройки дисплея
 
-// ----- Символы режимов
+#define AS_TM1637_DIGITS_NUM 4  // Количество разрядов на дисплее
 
+// Режимы
+#define AS_MODE_TEMP 0                // Заданная темп.
+#define AS_MODE_SENS_TEMP 1           // Текущая темп.
+#define AS_MODE_HSTR 2                // Гистерезис
+#define AS_MODE_MESSAGE 101           // Сообщение
+#define AS_MODE_DEFAULT AS_MODE_TEMP  // Стандартный режим
+
+// Режимы доступные для переключения
+#define AS_MODE_SWITCH_MIN 0  // Мин. номер
+#define AS_MODE_SWITCH_MAX 2  // Макс. номер
+
+// Символы режимов
 #define AS_MODE_SYMBOL_TEMP "S"
 #define AS_MODE_SYMBOL_SENS_TEMP "C"
 #define AS_MODE_SYMBOL_HSTR "H"
@@ -84,20 +74,25 @@
 #define AS_MESSAGE_NO 0
 #define AS_MESSAGE_SAVED 1
 #define AS_MESSAGE_ERROR_DISPLAY 101
-#define AS_MESSAGE_FIRST 1
-#define AS_MESSAGE_LAST 99
-#define AS_MESSAGE_ERROR_FIRST 100
-#define AS_MESSAGE_ERROR_LAST 199
 
-// ----- NTC (термистор) (https://kit.alexgyver.ru/tutorials/thermistor/)
+// ----- NTC (термистор)
 
-// Сопротивление резистора подключенного с NTC для создания делителя напряжения
+/*
+Описание с сайта AlexGyver:
+https://kit.alexgyver.ru/tutorials/thermistor
+
+- AS_NTC_RESISTOR - сопротивление балластного резистора, Ом
+- AS_NTC_BETA_COEF - бета-коэффициент термистора (см. даташит) [число в районе
+1000-5000]
+- AS_NTC_BASE_TEMP - базовая температура термистора, градусов Цельсия (см.
+даташит) [обычно 25 градусов]
+- AS_NTC_BASE_RESISTANCE - сопротивление термистора при базовой температуре, Ом
+(см. даташит)
+- AS_NTC_RESOLUTION - разрешение АЦП, бит. По умолчанию 10
+*/
+
 #define AS_NTC_RESISTOR 10000
-// Бета-коэффициент NTC
 #define AS_NTC_BETA_COEF 3950
-// Температура при которой у NTC сопротивление NTC_BASE_RESISTANCE
 #define AS_NTC_BASE_TEMP 25
-// Базовое сопротивление NTC
 #define AS_NTC_BASE_RESISTANCE 10000
-// Разрешение NTC
 #define AS_NTC_RESOLUTION 10
