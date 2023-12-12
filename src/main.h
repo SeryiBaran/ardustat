@@ -8,7 +8,7 @@
 // Библиотеки
 #include <EEManager.h>
 #include <EncButton.h>
-#include <GyverSegment.h>
 #include <GyverNTC.h>
-#include <TimerMs.h>
+#include <GyverSegment.h>
 #include <PinChangeInterrupt.h>
+#include <TimerMs.h>
