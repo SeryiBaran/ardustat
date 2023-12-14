@@ -1,31 +1,52 @@
-# История версий
+# Changelog
 
-## v1.1.1 (10.12.2023)
+All notable changes to this project will be documented in this file.
 
-- Добавлен префикс `AS_` (Ardustat => ArduStat => AS) для всех `#define`
-- Убраны бесполезные настройки в `config.h`
-- Убраны сообщения отладки
-- Убран макрос `F()` - бесполезен для строк длиною в пару символов
-- Переименованы некоторые переменные для уменьшения кода. Пример - `readed_temp` => `sens_temp`, `hysteresis` => `hstr`
-- Убрана лишняя проверка режима при ререндере дисплея после чтения температуры
-- Объединены функции `print_mode` и `put_num_at_end`
-- Упрощён метод проверки типа сообщения (простое сообщение/ошибка)
-- Упрощена функция обработки энкодера
+The format is based on [Keep a Changelog],
+and this project adheres to [Semantic Versioning].
 
-## v1.1.0 (10.12.2023)
+## [1.1.1] 2023-12-10
 
-- Объединение режимов Ошибка и Сообщение
-- Убран бесконечный показ ошибки
-- Символы режимов вынесены в конфиг
-- Инклюды вынесены в main.h
-- Добавлен `#pragma once` во всех хедерах
-- Добавлен [макрос `F()`](https://alexgyver.ru/lessons/code-optimisation/) во всех статичных строках
-- Увеличено количество комментариев к коду
+### Added
 
-## v1.0.1 (09.12.2023)
+- Added prefix `AS_` (Ardustat => ArduStat => AS) for all `#define`
+
+### Removed
+
+- Removed useless settings in `config.h`
+- Removed debug messages
+- Removed the `F()` macro - useless for strings a couple of characters
+- Removed unnecessary mode check when re-rendering the display after reading the temperature
+
+### Changed
+
+- Renamed some variables to reduce code. Example - `readed_temp` => `sens_temp`, `hysteresis` => `hstr`
+- Merged functions `print_mode` and `put_num_at_end`
+- Simplified method for checking message type (message or error)
+- Simplified encoder handling function
+
+## [1.1.0] 2023-12-10
+
+### Added
+
+- Added `#pragma once` in all headers
+- Added [macro `F()`](https://alexgyver.ru/lessons/code-optimisation/) in all static strings
+
+### Removed
+
+- Removed endless error display
+
+### Changed
+
+- Merged Error and Message modes
+- Mode symbols are included in the config
+- Includes are placed in main.h
+- Increased the number of comments to the code
+
+## [1.0.1] 2023-12-09
 
 - Переход на PlatformIO
 
-## v1.0 (09.12.2023)
+## [1.0.0] - 2023-12-09
 
-- Первая версия ¯\_(ツ)_/¯
+- First version
