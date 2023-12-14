@@ -45,7 +45,9 @@ and this project adheres to [Semantic Versioning].
 
 ## [1.0.1] 2023-12-09
 
-- Переход на PlatformIO
+### Changed
+
+- Switch to PlatformIO
 
 ## [1.0.0] - 2023-12-09
 
