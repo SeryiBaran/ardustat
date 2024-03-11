@@ -1,7 +1,7 @@
 #pragma once
 
 // Раскомментируй для отладки по Serial
-// #define ENABLE_DEBUG
+#define ENABLE_DEBUG
 
 #ifdef ENABLE_DEBUG
 #define DEBUG(x) Serial.print(x)
@@ -55,6 +55,8 @@
 #define AS_MESSAGE_TIME 3000
 // Задержка сохранения настроек
 #define AS_SETTINGS_SAVE_TIME 5000
+// Задержка выключения дисплея
+#define AS_DISPLAY_OFF_TIME 15000
 
 // ======== Настройки EEPROM
 
@@ -80,6 +82,8 @@
 #define AS_MODE_HSTR 2
 // Сообщение
 #define AS_MODE_MESSAGE 101
+// Выключенный экран
+#define AS_MODE_DISPLAY_OFF 102
 // Стандартный режим
 #define AS_MODE_DEFAULT AS_MODE_TEMP
 // Первый режим доступный для открытия

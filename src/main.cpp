@@ -24,6 +24,7 @@ GyverNTC ntc(AS_PIN_NTC, AS_NTC_RESISTOR, AS_NTC_BETA_COEF, AS_NTC_BASE_TEMP,
 TimerMs temp_read_timer(AS_TEMP_READ_TIME, 1, 0);
 TimerMs relay_update_timer(AS_RELAY_UPDATE_TIME, 1, 0);
 TimerMs message_close_timer(AS_MESSAGE_TIME, 0, 1);
+TimerMs display_off_timer(AS_DISPLAY_OFF_TIME, 1, 0);
 
 // Планируем отобразить сообщение при следующей отрисовке дисплея
 void add_message() {
@@ -37,6 +38,16 @@ void add_message() {
 // Планируем убрать сообщение при следующей отрисовке дисплея
 void remove_message() {
   mode = AS_MODE_DEFAULT;
+
+  message_code = AS_MESSAGE_NO;
+  message_is_error = false;
+
+  need_redraw_display = true;
+}
+
+// Планируем убрать все с дисплея при следующей отрисовке дисплея
+void off_display() {
+  mode = AS_MODE_DISPLAY_OFF;
 
   need_redraw_display = true;
 }
@@ -85,15 +96,14 @@ void redraw_display() {
   else if (mode == AS_MODE_MESSAGE) {
     print_mode(message_is_error ? AS_MODE_SYMBOL_ERROR : AS_MODE_SYMBOL_MESSAGE,
                message_code);
-
-    // Вывели - чистим за собой
-    message_code = AS_MESSAGE_NO;
-    message_is_error = false;
+  } else if (mode == AS_MODE_DISPLAY_OFF) {
+    display.clear();
   } else {
     // Если ID режима не подходит, ставим ошибку. При следующем рендере она
     // покажется
     message_code = AS_MESSAGE_ERROR_DISPLAY;
     message_is_error = true;
+    add_message();
   }
 
   display.update();
@@ -105,19 +115,33 @@ void redraw_display() {
 void enc_handle() {
   enc.tick();
 
-  if (enc.click()) change_mode();
+  if (enc.click()) {
+    display_off_timer.restart();
+
+    if (mode == AS_MODE_DISPLAY_OFF) {
+      mode = AS_MODE_DEFAULT;
+
+      need_redraw_display = true;
+    } else {
+      change_mode();
+    }
+  }
 
   if (enc.turn()) {
-    // `-1` - шаг изменения, указывается отрицательным числом
-    if (mode == AS_MODE_TEMP)
-      settings.temp =
-          constrain(settings.temp + -1 * enc.dir(), AS_MIN_TEMP, AS_MAX_TEMP);
-    else if (mode == AS_MODE_HSTR)
-      settings.hstr =
-          constrain(settings.hstr + -1 * enc.dir(), AS_MIN_HSTR, AS_MAX_HSTR);
+    display_off_timer.restart();
 
-    memory.update();
-    need_redraw_display = true;
+    if (mode != AS_MODE_DISPLAY_OFF) {
+      // `-1` - шаг изменения, указывается отрицательным числом
+      if (mode == AS_MODE_TEMP)
+        settings.temp =
+            constrain(settings.temp + -1 * enc.dir(), AS_MIN_TEMP, AS_MAX_TEMP);
+      else if (mode == AS_MODE_HSTR)
+        settings.hstr =
+            constrain(settings.hstr + -1 * enc.dir(), AS_MIN_HSTR, AS_MAX_HSTR);
+
+      memory.update();
+      need_redraw_display = true;
+    }
   }
 }
 
@@ -141,7 +165,10 @@ void setup() {
 
 void loop() {
   // Если настройки были записаны в EEPROM - ставим радостное сообщение
-  if (memory.tick()) message_code = AS_MESSAGE_SAVED;
+  if (memory.tick()) {
+      message_code = AS_MESSAGE_SAVED;
+      add_message();
+    }
 
   if (temp_read_timer.tick()) {
     read_temp();
@@ -152,7 +179,8 @@ void loop() {
 
   if (relay_update_timer.tick()) update_relay();
 
-  if (message_code) add_message();
   if (message_close_timer.tick()) remove_message();
+  if (display_off_timer.tick()) off_display();
+
   if (need_redraw_display) redraw_display();
 }
