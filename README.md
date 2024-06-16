@@ -1,12 +1,16 @@
 # Ardustat
 
-Схема в Fritzing:
-
-![Fritzing](./readme_assets/fritzing.png)
-
 Термостат на Arduino Nano + NTC с 4-разрядным 7-сегментным дисплеем.
 
-Код и схема создавались в онлайн-симуляторе [Wokwi](https://wokwi.com/) и не проверялись в реальности.
+Схема:
+
+![](./readme_assets/fritzing.png)
+
+Схема в KiCad [здесь](./kicad).
+
+Схема KiCad в PDF [здесь](./kicad/renders/scheme.pdf).
+
+ВНИМАНИЕ!!! Код создавался в онлайн-симуляторе [Wokwi](https://wokwi.com/) и не проверялся в реальности.
 
 Настройки сохраняются в EEPROM. Беспокоиться не стоит, используется библиотека EEManager с удобной логикой.
 

@@ -87,17 +87,21 @@ void redraw_display() {
   display.setCursor(0);
   display.clear();
 
-  if (mode == AS_MODE_TEMP)
+  if (mode == AS_MODE_TEMP) {
+    display.power(true);
     print_mode(AS_MODE_SYMBOL_TEMP, settings.temp);
-  else if (mode == AS_MODE_SENS_TEMP)
+  } else if (mode == AS_MODE_SENS_TEMP) {
+    display.power(true);
     print_mode(AS_MODE_SYMBOL_SENS_TEMP, sens_temp);
-  else if (mode == AS_MODE_HSTR)
+  } else if (mode == AS_MODE_HSTR) {
+    display.power(true);
     print_mode(AS_MODE_SYMBOL_HSTR, settings.hstr);
-  else if (mode == AS_MODE_MESSAGE) {
+  } else if (mode == AS_MODE_MESSAGE) {
+    display.power(true);
     print_mode(message_is_error ? AS_MODE_SYMBOL_ERROR : AS_MODE_SYMBOL_MESSAGE,
                message_code);
   } else if (mode == AS_MODE_DISPLAY_OFF) {
-    display.clear();
+    display.power(false);
   } else {
     // Если ID режима не подходит, ставим ошибку. При следующем рендере она
     // покажется
@@ -166,9 +170,9 @@ void setup() {
 void loop() {
   // Если настройки были записаны в EEPROM - ставим радостное сообщение
   if (memory.tick()) {
-      message_code = AS_MESSAGE_SAVED;
-      add_message();
-    }
+    message_code = AS_MESSAGE_SAVED;
+    add_message();
+  }
 
   if (temp_read_timer.tick()) {
     read_temp();
